@@ -19,19 +19,23 @@ from dataclasses import dataclass, asdict
 from enum import Enum
 
 # Add tests directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'tests'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "tests"))
+
 
 class TestStatus(Enum):
     """Test execution status"""
+
     PASSED = "PASSED"
     FAILED = "FAILED"
     SKIPPED = "SKIPPED"
     ERROR = "ERROR"
     TIMEOUT = "TIMEOUT"
 
+
 @dataclass
 class TestResult:
     """Test execution result"""
+
     test_id: str
     test_name: str
     test_group: str
@@ -44,22 +48,23 @@ class TestResult:
     def to_dict(self):
         """Convert to dictionary"""
         result = asdict(self)
-        result['status'] = self.status.value
+        result["status"] = self.status.value
         return result
+
 
 class TestDiscovery:
     """Discover and manage test cases"""
 
     TEST_GROUPS = {
-        'basic': (1, 99),
-        'multipart': (100, 199),
-        'versioning': (200, 299),
-        'acl': (300, 399),
-        'encryption': (400, 499),
-        'lifecycle': (500, 599),
-        'performance': (600, 699),
-        'stress': (700, 799),
-        'compatibility': (800, 899),
+        "basic": (1, 99),
+        "multipart": (100, 199),
+        "versioning": (200, 299),
+        "acl": (300, 399),
+        "encryption": (400, 499),
+        "lifecycle": (500, 599),
+        "performance": (600, 699),
+        "stress": (700, 799),
+        "compatibility": (800, 899),
     }
 
     def __init__(self, test_dir: Path):
@@ -75,22 +80,22 @@ class TestDiscovery:
                 continue
 
             # Look for test files (e.g., 001, 002, 001.py, etc.)
-            for test_file in sorted(group_dir.glob('[0-9][0-9][0-9]*')):
+            for test_file in sorted(group_dir.glob("[0-9][0-9][0-9]*")):
                 if test_file.is_file():
-                    test_id = test_file.stem.split('.')[0]  # Get numeric part
+                    test_id = test_file.stem.split(".")[0]  # Get numeric part
                     if test_id.isdigit():
                         test_num = int(test_id)
                         if start_id <= test_num <= end_id:
                             self.tests[test_id] = {
-                                'id': test_id,
-                                'group': group_name,
-                                'path': test_file,
-                                'name': f"test_{test_id}",
+                                "id": test_id,
+                                "group": group_name,
+                                "path": test_file,
+                                "name": f"test_{test_id}",
                             }
 
     def get_tests_by_group(self, group: str) -> List[Dict]:
         """Get all tests in a specific group"""
-        return [t for t in self.tests.values() if t['group'] == group]
+        return [t for t in self.tests.values() if t["group"] == group]
 
     def get_test_by_id(self, test_id: str) -> Optional[Dict]:
         """Get a specific test by ID"""
@@ -102,6 +107,7 @@ class TestDiscovery:
     def get_all_tests(self) -> List[Dict]:
         """Get all discovered tests"""
         return list(self.tests.values())
+
 
 class TestExecutor:
     """Execute individual test cases"""
@@ -117,19 +123,19 @@ class TestExecutor:
         from common.s3_client import S3Client
 
         self.s3_client = S3Client(
-            endpoint_url=self.config.get('s3_endpoint_url', 'http://localhost:9000'),
-            access_key=self.config.get('s3_access_key', 'minioadmin'),
-            secret_key=self.config.get('s3_secret_key', 'minioadmin'),
-            region=self.config.get('s3_region', 'us-east-1'),
-            use_ssl=self.config.get('s3_use_ssl', False),
-            verify_ssl=self.config.get('s3_verify_ssl', True),
+            endpoint_url=self.config.get("s3_endpoint_url", "http://localhost:9000"),
+            access_key=self.config.get("s3_access_key", "minioadmin"),
+            secret_key=self.config.get("s3_secret_key", "minioadmin"),
+            region=self.config.get("s3_region", "us-east-1"),
+            use_ssl=self.config.get("s3_use_ssl", False),
+            verify_ssl=self.config.get("s3_verify_ssl", True),
         )
 
     def execute_test(self, test_info: Dict) -> TestResult:
         """Execute a single test"""
-        test_id = test_info['id']
-        test_path = test_info['path']
-        test_group = test_info['group']
+        test_id = test_info["id"]
+        test_path = test_info["path"]
+        test_group = test_info["group"]
 
         start_time = time.time()
         timestamp = datetime.now().isoformat()
@@ -147,10 +153,12 @@ class TestExecutor:
             test_func_name = f"test_{test_id}"
             if hasattr(test_module, test_func_name):
                 test_func = getattr(test_module, test_func_name)
-            elif hasattr(test_module, 'run'):
+            elif hasattr(test_module, "run"):
                 test_func = test_module.run
             else:
-                raise AttributeError(f"No test function '{test_func_name}' or 'run' found in {test_path}")
+                raise AttributeError(
+                    f"No test function '{test_func_name}' or 'run' found in {test_path}"
+                )
 
             # Execute test with S3 client and config
             test_func(self.s3_client, self.config)
@@ -158,7 +166,7 @@ class TestExecutor:
             duration = time.time() - start_time
             return TestResult(
                 test_id=test_id,
-                test_name=test_info['name'],
+                test_name=test_info["name"],
                 test_group=test_group,
                 status=TestStatus.PASSED,
                 duration=duration,
@@ -170,7 +178,7 @@ class TestExecutor:
             duration = time.time() - start_time
             return TestResult(
                 test_id=test_id,
-                test_name=test_info['name'],
+                test_name=test_info["name"],
                 test_group=test_group,
                 status=TestStatus.FAILED,
                 duration=duration,
@@ -183,7 +191,7 @@ class TestExecutor:
             duration = time.time() - start_time
             return TestResult(
                 test_id=test_id,
-                test_name=test_info['name'],
+                test_name=test_info["name"],
                 test_group=test_group,
                 status=TestStatus.ERROR,
                 duration=duration,
@@ -192,6 +200,7 @@ class TestExecutor:
                 timestamp=timestamp,
             )
 
+
 class ResultFormatter:
     """Format and save test results"""
 
@@ -199,13 +208,13 @@ class ResultFormatter:
     def format_json(results: List[TestResult]) -> str:
         """Format results as JSON"""
         data = {
-            'timestamp': datetime.now().isoformat(),
-            'total': len(results),
-            'passed': len([r for r in results if r.status == TestStatus.PASSED]),
-            'failed': len([r for r in results if r.status == TestStatus.FAILED]),
-            'skipped': len([r for r in results if r.status == TestStatus.SKIPPED]),
-            'errors': len([r for r in results if r.status == TestStatus.ERROR]),
-            'results': [r.to_dict() for r in results],
+            "timestamp": datetime.now().isoformat(),
+            "total": len(results),
+            "passed": len([r for r in results if r.status == TestStatus.PASSED]),
+            "failed": len([r for r in results if r.status == TestStatus.FAILED]),
+            "skipped": len([r for r in results if r.status == TestStatus.SKIPPED]),
+            "errors": len([r for r in results if r.status == TestStatus.ERROR]),
+            "results": [r.to_dict() for r in results],
         }
         return json.dumps(data, indent=2)
 
@@ -213,13 +222,13 @@ class ResultFormatter:
     def format_yaml(results: List[TestResult]) -> str:
         """Format results as YAML"""
         data = {
-            'timestamp': datetime.now().isoformat(),
-            'total': len(results),
-            'passed': len([r for r in results if r.status == TestStatus.PASSED]),
-            'failed': len([r for r in results if r.status == TestStatus.FAILED]),
-            'skipped': len([r for r in results if r.status == TestStatus.SKIPPED]),
-            'errors': len([r for r in results if r.status == TestStatus.ERROR]),
-            'results': [r.to_dict() for r in results],
+            "timestamp": datetime.now().isoformat(),
+            "total": len(results),
+            "passed": len([r for r in results if r.status == TestStatus.PASSED]),
+            "failed": len([r for r in results if r.status == TestStatus.FAILED]),
+            "skipped": len([r for r in results if r.status == TestStatus.SKIPPED]),
+            "errors": len([r for r in results if r.status == TestStatus.ERROR]),
+            "results": [r.to_dict() for r in results],
         }
         return yaml.dump(data, default_flow_style=False, sort_keys=False)
 
@@ -261,9 +270,11 @@ class ResultFormatter:
                 TestStatus.TIMEOUT: "⏱",
             }.get(result.status, "?")
 
-            lines.append(f"[{status_char}] {result.test_id}: {result.test_name} "
-                        f"({result.test_group}) - {result.status.value} "
-                        f"[{result.duration:.3f}s]")
+            lines.append(
+                f"[{status_char}] {result.test_id}: {result.test_name} "
+                f"({result.test_group}) - {result.status.value} "
+                f"[{result.duration:.3f}s]"
+            )
 
             if result.message and result.status != TestStatus.PASSED:
                 lines.append(f"    {result.message}")
@@ -278,9 +289,9 @@ class ResultFormatter:
         from xml.dom import minidom
 
         # Create root testsuites element
-        testsuites = Element('testsuites')
-        testsuites.set('name', 'S3 Interoperability Tests')
-        testsuites.set('timestamp', datetime.now().isoformat())
+        testsuites = Element("testsuites")
+        testsuites.set("name", "S3 Interoperability Tests")
+        testsuites.set("timestamp", datetime.now().isoformat())
 
         # Group results by test group
         groups = {}
@@ -291,76 +302,101 @@ class ResultFormatter:
 
         # Create testsuite for each group
         for group_name, group_results in groups.items():
-            testsuite = SubElement(testsuites, 'testsuite')
-            testsuite.set('name', group_name)
-            testsuite.set('tests', str(len(group_results)))
-            testsuite.set('failures', str(len([r for r in group_results
-                                               if r.status == TestStatus.FAILED])))
-            testsuite.set('errors', str(len([r for r in group_results
-                                            if r.status == TestStatus.ERROR])))
-            testsuite.set('skipped', str(len([r for r in group_results
-                                             if r.status == TestStatus.SKIPPED])))
-            testsuite.set('time', str(sum(r.duration for r in group_results)))
+            testsuite = SubElement(testsuites, "testsuite")
+            testsuite.set("name", group_name)
+            testsuite.set("tests", str(len(group_results)))
+            testsuite.set(
+                "failures",
+                str(len([r for r in group_results if r.status == TestStatus.FAILED])),
+            )
+            testsuite.set(
+                "errors",
+                str(len([r for r in group_results if r.status == TestStatus.ERROR])),
+            )
+            testsuite.set(
+                "skipped",
+                str(len([r for r in group_results if r.status == TestStatus.SKIPPED])),
+            )
+            testsuite.set("time", str(sum(r.duration for r in group_results)))
 
             for result in group_results:
-                testcase = SubElement(testsuite, 'testcase')
-                testcase.set('classname', f"s3.{result.test_group}")
-                testcase.set('name', result.test_name)
-                testcase.set('time', str(result.duration))
+                testcase = SubElement(testsuite, "testcase")
+                testcase.set("classname", f"s3.{result.test_group}")
+                testcase.set("name", result.test_name)
+                testcase.set("time", str(result.duration))
 
                 if result.status == TestStatus.FAILED:
-                    failure = SubElement(testcase, 'failure')
-                    failure.set('message', result.message)
+                    failure = SubElement(testcase, "failure")
+                    failure.set("message", result.message)
                     failure.text = result.error
                 elif result.status == TestStatus.ERROR:
-                    error = SubElement(testcase, 'error')
-                    error.set('message', result.message)
+                    error = SubElement(testcase, "error")
+                    error.set("message", result.message)
                     error.text = result.error
                 elif result.status == TestStatus.SKIPPED:
-                    skipped = SubElement(testcase, 'skipped')
-                    skipped.set('message', result.message)
+                    skipped = SubElement(testcase, "skipped")
+                    skipped.set("message", result.message)
 
         # Pretty print XML
-        rough_string = tostring(testsuites, 'utf-8')
+        rough_string = tostring(testsuites, "utf-8")
         reparsed = minidom.parseString(rough_string)
         return reparsed.toprettyxml(indent="  ")
 
+
 @click.command()
-@click.option('--config', '-c', type=click.Path(exists=True),
-              default='s3_config.yaml', help='Configuration file')
-@click.option('--test', '-t', help='Run specific test by ID (e.g., 001)')
-@click.option('--group', '-g', help='Run tests from specific group')
-@click.option('--output-dir', '-o', type=click.Path(),
-              default='results', help='Output directory for results')
-@click.option('--output-format', '-f',
-              type=click.Choice(['json', 'yaml', 'text', 'junit']),
-              default='text', help='Output format')
-@click.option('--verbose', '-v', is_flag=True, help='Verbose output')
-@click.option('--list-tests', '-l', is_flag=True, help='List available tests')
+@click.option(
+    "--config",
+    "-c",
+    type=click.Path(exists=True),
+    default="s3_config.yaml",
+    help="Configuration file",
+)
+@click.option("--test", "-t", help="Run specific test by ID (e.g., 001)")
+@click.option("--group", "-g", help="Run tests from specific group")
+@click.option(
+    "--output-dir",
+    "-o",
+    type=click.Path(),
+    default="results",
+    help="Output directory for results",
+)
+@click.option(
+    "--output-format",
+    "-f",
+    type=click.Choice(["json", "yaml", "text", "junit"]),
+    default="text",
+    help="Output format",
+)
+@click.option("--verbose", "-v", is_flag=True, help="Verbose output")
+@click.option("--list-tests", "-l", is_flag=True, help="List available tests")
 def main(config, test, group, output_dir, output_format, verbose, list_tests):
     """MSST-S3 Test Runner - Execute S3 interoperability tests"""
 
     # Load configuration
     config_path = Path(config)
     if config_path.exists():
-        with open(config_path, 'r') as f:
-            if config_path.suffix in ['.yaml', '.yml']:
+        with open(config_path, "r") as f:
+            if config_path.suffix in [".yaml", ".yml"]:
                 test_config = yaml.safe_load(f)
             else:
                 test_config = {}
     else:
-        click.echo(f"Warning: Configuration file {config} not found, using defaults", err=True)
+        click.echo(
+            f"Warning: Configuration file {config} not found, using defaults", err=True
+        )
         test_config = {}
 
     # Setup test discovery
-    test_dir = Path(__file__).parent.parent / 'tests'
+    test_dir = Path(__file__).parent.parent / "tests"
     discovery = TestDiscovery(test_dir)
 
     # List tests if requested
     if list_tests:
         click.echo("Available tests:")
-        for test_info in sorted(discovery.get_all_tests(), key=lambda t: t['id']):
-            click.echo(f"  {test_info['id']}: {test_info['name']} ({test_info['group']})")
+        for test_info in sorted(discovery.get_all_tests(), key=lambda t: t["id"]):
+            click.echo(
+                f"  {test_info['id']}: {test_info['name']} ({test_info['group']})"
+            )
         return
 
     # Determine which tests to run
@@ -382,24 +418,24 @@ def main(config, test, group, output_dir, output_format, verbose, list_tests):
     else:
         # Run all enabled tests based on configuration
         enabled_groups = []
-        if test_config.get('test_basic', True):
-            enabled_groups.append('basic')
-        if test_config.get('test_multipart', True):
-            enabled_groups.append('multipart')
-        if test_config.get('test_versioning', False):
-            enabled_groups.append('versioning')
-        if test_config.get('test_acl', False):
-            enabled_groups.append('acl')
-        if test_config.get('test_encryption', False):
-            enabled_groups.append('encryption')
-        if test_config.get('test_lifecycle', False):
-            enabled_groups.append('lifecycle')
-        if test_config.get('test_performance', False):
-            enabled_groups.append('performance')
-        if test_config.get('test_stress', False):
-            enabled_groups.append('stress')
-        if test_config.get('test_compatibility', False):
-            enabled_groups.append('compatibility')
+        if test_config.get("test_basic", True):
+            enabled_groups.append("basic")
+        if test_config.get("test_multipart", True):
+            enabled_groups.append("multipart")
+        if test_config.get("test_versioning", False):
+            enabled_groups.append("versioning")
+        if test_config.get("test_acl", False):
+            enabled_groups.append("acl")
+        if test_config.get("test_encryption", False):
+            enabled_groups.append("encryption")
+        if test_config.get("test_lifecycle", False):
+            enabled_groups.append("lifecycle")
+        if test_config.get("test_performance", False):
+            enabled_groups.append("performance")
+        if test_config.get("test_stress", False):
+            enabled_groups.append("stress")
+        if test_config.get("test_compatibility", False):
+            enabled_groups.append("compatibility")
 
         for group_name in enabled_groups:
             tests_to_run.extend(discovery.get_tests_by_group(group_name))
@@ -409,7 +445,7 @@ def main(config, test, group, output_dir, output_format, verbose, list_tests):
         sys.exit(1)
 
     # Sort tests by ID
-    tests_to_run = sorted(tests_to_run, key=lambda t: t['id'])
+    tests_to_run = sorted(tests_to_run, key=lambda t: t["id"])
 
     click.echo(f"Running {len(tests_to_run)} tests...")
 
@@ -419,7 +455,9 @@ def main(config, test, group, output_dir, output_format, verbose, list_tests):
 
     for test_info in tests_to_run:
         if verbose:
-            click.echo(f"Running test {test_info['id']}: {test_info['name']} ({test_info['group']})...")
+            click.echo(
+                f"Running test {test_info['id']}: {test_info['name']} ({test_info['group']})..."
+            )
 
         result = executor.execute_test(test_info)
         results.append(result)
@@ -439,10 +477,10 @@ def main(config, test, group, output_dir, output_format, verbose, list_tests):
 
     # Format results
     formatter_map = {
-        'json': ResultFormatter.format_json,
-        'yaml': ResultFormatter.format_yaml,
-        'text': ResultFormatter.format_text,
-        'junit': ResultFormatter.format_junit,
+        "json": ResultFormatter.format_json,
+        "yaml": ResultFormatter.format_yaml,
+        "text": ResultFormatter.format_text,
+        "junit": ResultFormatter.format_junit,
     }
 
     formatter = formatter_map[output_format]
@@ -453,25 +491,28 @@ def main(config, test, group, output_dir, output_format, verbose, list_tests):
     output_path.mkdir(parents=True, exist_ok=True)
 
     extension_map = {
-        'json': '.json',
-        'yaml': '.yaml',
-        'text': '.txt',
-        'junit': '.xml',
+        "json": ".json",
+        "yaml": ".yaml",
+        "text": ".txt",
+        "junit": ".xml",
     }
 
     output_file = output_path / f"results{extension_map[output_format]}"
-    with open(output_file, 'w') as f:
+    with open(output_file, "w") as f:
         f.write(formatted_results)
 
     click.echo(f"\nResults saved to {output_file}")
 
     # Print summary
-    if output_format != 'text':
+    if output_format != "text":
         click.echo("\n" + ResultFormatter.format_text(results))
 
     # Exit with appropriate code
-    failed_count = len([r for r in results if r.status in [TestStatus.FAILED, TestStatus.ERROR]])
+    failed_count = len(
+        [r for r in results if r.status in [TestStatus.FAILED, TestStatus.ERROR]]
+    )
     sys.exit(1 if failed_count > 0 else 0)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

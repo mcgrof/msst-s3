@@ -7,9 +7,9 @@ from .fixtures import TestFixture, cleanup_bucket
 from .validators import validate_bucket_exists, validate_object_exists
 
 __all__ = [
-    'S3Client',
-    'TestFixture',
-    'cleanup_bucket',
-    'validate_bucket_exists',
-    'validate_object_exists',
+    "S3Client",
+    "TestFixture",
+    "cleanup_bucket",
+    "validate_bucket_exists",
+    "validate_object_exists",
 ]

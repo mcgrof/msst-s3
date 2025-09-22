@@ -336,6 +336,13 @@ dev-setup: venv config
 ci-test: defconfig test
 	@echo "CI test complete"
 
+# Style/formatting target
+.PHONY: style
+style:
+	@echo "Running black formatter on Python files..."
+	@black scripts/*.py tests/common/*.py 2>/dev/null || true
+	@echo "Style formatting complete"
+
 # Include dependency tracking
 -include .depend
 

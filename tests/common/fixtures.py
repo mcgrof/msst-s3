@@ -12,6 +12,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class TestFixture:
     """Base test fixture with common utilities"""
 
@@ -25,7 +26,7 @@ class TestFixture:
         """
         self.s3 = s3_client
         self.config = config
-        self.bucket_prefix = config.get('s3_bucket_prefix', 'msst-test')
+        self.bucket_prefix = config.get("s3_bucket_prefix", "msst-test")
         self.created_buckets = []
         self.created_objects = []
 
@@ -35,9 +36,9 @@ class TestFixture:
         if suffix:
             name_parts.append(suffix)
         name_parts.append(str(uuid.uuid4())[:8])
-        return '-'.join(name_parts).lower()
+        return "-".join(name_parts).lower()
 
-    def generate_key_name(self, prefix: str = 'test-object') -> str:
+    def generate_key_name(self, prefix: str = "test-object") -> str:
         """Generate a unique object key"""
         return f"{prefix}-{uuid.uuid4()}"
 
@@ -47,8 +48,8 @@ class TestFixture:
 
     def generate_text_data(self, size: int) -> str:
         """Generate random text data of specified size"""
-        chars = string.ascii_letters + string.digits + string.punctuation + ' \n'
-        return ''.join(random.choice(chars) for _ in range(size))
+        chars = string.ascii_letters + string.digits + string.punctuation + " \n"
+        return "".join(random.choice(chars) for _ in range(size))
 
     def parse_size(self, size_str: str) -> int:
         """
@@ -61,16 +62,16 @@ class TestFixture:
             Size in bytes
         """
         units = {
-            'B': 1,
-            'KB': 1024,
-            'MB': 1024 * 1024,
-            'GB': 1024 * 1024 * 1024,
+            "B": 1,
+            "KB": 1024,
+            "MB": 1024 * 1024,
+            "GB": 1024 * 1024 * 1024,
         }
 
         size_str = size_str.upper().strip()
         for unit, multiplier in units.items():
             if size_str.endswith(unit):
-                number_str = size_str[:-len(unit)]
+                number_str = size_str[: -len(unit)]
                 try:
                     return int(float(number_str) * multiplier)
                 except ValueError:
@@ -100,8 +101,9 @@ class TestFixture:
         logger.debug(f"Created test bucket: {bucket_name}")
         return bucket_name
 
-    def create_test_object(self, bucket_name: str, key: str = None,
-                          data: bytes = None, size: int = None) -> str:
+    def create_test_object(
+        self, bucket_name: str, key: str = None, data: bytes = None, size: int = None
+    ) -> str:
         """
         Create a test object and track it for cleanup
 
@@ -151,6 +153,7 @@ class TestFixture:
         self.created_objects.clear()
         self.created_buckets.clear()
 
+
 @contextmanager
 def cleanup_bucket(s3_client, bucket_name: str):
     """
@@ -172,7 +175,10 @@ def cleanup_bucket(s3_client, bucket_name: str):
         except Exception as e:
             logger.warning(f"Failed to cleanup bucket {bucket_name}: {e}")
 
-def create_multipart_chunks(data: bytes, chunk_size: int = 5 * 1024 * 1024) -> List[bytes]:
+
+def create_multipart_chunks(
+    data: bytes, chunk_size: int = 5 * 1024 * 1024
+) -> List[bytes]:
     """
     Split data into chunks for multipart upload
 
@@ -185,8 +191,9 @@ def create_multipart_chunks(data: bytes, chunk_size: int = 5 * 1024 * 1024) -> L
     """
     chunks = []
     for i in range(0, len(data), chunk_size):
-        chunks.append(data[i:i + chunk_size])
+        chunks.append(data[i : i + chunk_size])
     return chunks
+
 
 def calculate_etag(data: bytes) -> str:
     """
@@ -199,7 +206,9 @@ def calculate_etag(data: bytes) -> str:
         ETag string
     """
     import hashlib
+
     return f'"{hashlib.md5(data).hexdigest()}"'
+
 
 def compare_data(data1: bytes, data2: bytes) -> bool:
     """
@@ -214,9 +223,10 @@ def compare_data(data1: bytes, data2: bytes) -> bool:
     """
     return data1 == data2
 
-def generate_test_files(directory: str, count: int = 10,
-                       min_size: int = 1024,
-                       max_size: int = 10485760) -> List[str]:
+
+def generate_test_files(
+    directory: str, count: int = 10, min_size: int = 1024, max_size: int = 10485760
+) -> List[str]:
     """
     Generate test files for upload testing
 
@@ -240,7 +250,7 @@ def generate_test_files(directory: str, count: int = 10,
         data = bytes(random.getrandbits(8) for _ in range(size))
 
         filename = os.path.join(directory, f"test_file_{i}_{size}.bin")
-        with open(filename, 'wb') as f:
+        with open(filename, "wb") as f:
             f.write(data)
 
         files.append(filename)

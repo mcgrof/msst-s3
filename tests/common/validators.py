@@ -8,8 +8,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def validate_bucket_exists(s3_client, bucket_name: str,
-                          timeout: int = 30) -> bool:
+
+def validate_bucket_exists(s3_client, bucket_name: str, timeout: int = 30) -> bool:
     """
     Validate that a bucket exists
 
@@ -32,8 +32,10 @@ def validate_bucket_exists(s3_client, bucket_name: str,
 
     raise AssertionError(f"Bucket {bucket_name} does not exist after {timeout} seconds")
 
-def validate_object_exists(s3_client, bucket_name: str, key: str,
-                          timeout: int = 30) -> bool:
+
+def validate_object_exists(
+    s3_client, bucket_name: str, key: str, timeout: int = 30
+) -> bool:
     """
     Validate that an object exists
 
@@ -55,10 +57,12 @@ def validate_object_exists(s3_client, bucket_name: str, key: str,
             return True
         time.sleep(1)
 
-    raise AssertionError(f"Object {bucket_name}/{key} does not exist after {timeout} seconds")
+    raise AssertionError(
+        f"Object {bucket_name}/{key} does not exist after {timeout} seconds"
+    )
 
-def validate_bucket_not_exists(s3_client, bucket_name: str,
-                              timeout: int = 30) -> bool:
+
+def validate_bucket_not_exists(s3_client, bucket_name: str, timeout: int = 30) -> bool:
     """
     Validate that a bucket does not exist
 
@@ -81,8 +85,10 @@ def validate_bucket_not_exists(s3_client, bucket_name: str,
 
     raise AssertionError(f"Bucket {bucket_name} still exists after {timeout} seconds")
 
-def validate_object_not_exists(s3_client, bucket_name: str, key: str,
-                              timeout: int = 30) -> bool:
+
+def validate_object_not_exists(
+    s3_client, bucket_name: str, key: str, timeout: int = 30
+) -> bool:
     """
     Validate that an object does not exist
 
@@ -104,10 +110,14 @@ def validate_object_not_exists(s3_client, bucket_name: str, key: str,
             return True
         time.sleep(1)
 
-    raise AssertionError(f"Object {bucket_name}/{key} still exists after {timeout} seconds")
+    raise AssertionError(
+        f"Object {bucket_name}/{key} still exists after {timeout} seconds"
+    )
 
-def validate_object_content(s3_client, bucket_name: str, key: str,
-                           expected_data: bytes) -> bool:
+
+def validate_object_content(
+    s3_client, bucket_name: str, key: str, expected_data: bytes
+) -> bool:
     """
     Validate object content matches expected data
 
@@ -124,7 +134,7 @@ def validate_object_content(s3_client, bucket_name: str, key: str,
         AssertionError: If content doesn't match
     """
     response = s3_client.get_object(bucket_name, key)
-    actual_data = response['Body'].read()
+    actual_data = response["Body"].read()
 
     if actual_data != expected_data:
         raise AssertionError(
@@ -134,8 +144,10 @@ def validate_object_content(s3_client, bucket_name: str, key: str,
 
     return True
 
-def validate_object_metadata(s3_client, bucket_name: str, key: str,
-                            expected_metadata: Dict[str, str]) -> bool:
+
+def validate_object_metadata(
+    s3_client, bucket_name: str, key: str, expected_metadata: Dict[str, str]
+) -> bool:
     """
     Validate object metadata
 
@@ -152,7 +164,7 @@ def validate_object_metadata(s3_client, bucket_name: str, key: str,
         AssertionError: If metadata doesn't match
     """
     response = s3_client.get_object(bucket_name, key)
-    actual_metadata = response.get('Metadata', {})
+    actual_metadata = response.get("Metadata", {})
 
     for key, expected_value in expected_metadata.items():
         actual_value = actual_metadata.get(key)
@@ -164,8 +176,10 @@ def validate_object_metadata(s3_client, bucket_name: str, key: str,
 
     return True
 
-def validate_bucket_acl(s3_client, bucket_name: str,
-                       expected_grants: List[Dict]) -> bool:
+
+def validate_bucket_acl(
+    s3_client, bucket_name: str, expected_grants: List[Dict]
+) -> bool:
     """
     Validate bucket ACL grants
 
@@ -181,7 +195,7 @@ def validate_bucket_acl(s3_client, bucket_name: str,
         AssertionError: If ACL doesn't match
     """
     acl = s3_client.get_bucket_acl(bucket_name)
-    actual_grants = acl.get('Grants', [])
+    actual_grants = acl.get("Grants", [])
 
     if len(actual_grants) != len(expected_grants):
         raise AssertionError(
@@ -192,8 +206,10 @@ def validate_bucket_acl(s3_client, bucket_name: str,
     # Simplified validation - can be made more sophisticated
     return True
 
-def validate_object_acl(s3_client, bucket_name: str, key: str,
-                       expected_grants: List[Dict]) -> bool:
+
+def validate_object_acl(
+    s3_client, bucket_name: str, key: str, expected_grants: List[Dict]
+) -> bool:
     """
     Validate object ACL grants
 
@@ -210,7 +226,7 @@ def validate_object_acl(s3_client, bucket_name: str, key: str,
         AssertionError: If ACL doesn't match
     """
     acl = s3_client.get_object_acl(bucket_name, key)
-    actual_grants = acl.get('Grants', [])
+    actual_grants = acl.get("Grants", [])
 
     if len(actual_grants) != len(expected_grants):
         raise AssertionError(
@@ -221,8 +237,10 @@ def validate_object_acl(s3_client, bucket_name: str, key: str,
     # Simplified validation - can be made more sophisticated
     return True
 
-def validate_bucket_versioning(s3_client, bucket_name: str,
-                              expected_status: str) -> bool:
+
+def validate_bucket_versioning(
+    s3_client, bucket_name: str, expected_status: str
+) -> bool:
     """
     Validate bucket versioning status
 
@@ -240,8 +258,8 @@ def validate_bucket_versioning(s3_client, bucket_name: str,
     actual_status = s3_client.get_bucket_versioning(bucket_name)
 
     # Handle default case where versioning is not configured
-    if actual_status == '' and expected_status == 'Disabled':
-        actual_status = 'Disabled'
+    if actual_status == "" and expected_status == "Disabled":
+        actual_status = "Disabled"
 
     if actual_status != expected_status:
         raise AssertionError(
@@ -251,8 +269,10 @@ def validate_bucket_versioning(s3_client, bucket_name: str,
 
     return True
 
-def validate_object_count(s3_client, bucket_name: str,
-                         expected_count: int, prefix: str = '') -> bool:
+
+def validate_object_count(
+    s3_client, bucket_name: str, expected_count: int, prefix: str = ""
+) -> bool:
     """
     Validate number of objects in a bucket
 
@@ -279,8 +299,10 @@ def validate_object_count(s3_client, bucket_name: str,
 
     return True
 
-def validate_response_headers(response: Dict[str, Any],
-                             expected_headers: Dict[str, str]) -> bool:
+
+def validate_response_headers(
+    response: Dict[str, Any], expected_headers: Dict[str, str]
+) -> bool:
     """
     Validate response headers
 
@@ -294,8 +316,8 @@ def validate_response_headers(response: Dict[str, Any],
     Raises:
         AssertionError: If headers don't match
     """
-    response_metadata = response.get('ResponseMetadata', {})
-    headers = response_metadata.get('HTTPHeaders', {})
+    response_metadata = response.get("ResponseMetadata", {})
+    headers = response_metadata.get("HTTPHeaders", {})
 
     for header_name, expected_value in expected_headers.items():
         actual_value = headers.get(header_name.lower())
@@ -306,6 +328,7 @@ def validate_response_headers(response: Dict[str, Any],
             )
 
     return True
+
 
 def validate_error_code(error, expected_code: str) -> bool:
     """
@@ -326,11 +349,10 @@ def validate_error_code(error, expected_code: str) -> bool:
     if not isinstance(error, ClientError):
         raise AssertionError(f"Expected ClientError, got {type(error)}")
 
-    actual_code = error.response['Error']['Code']
+    actual_code = error.response["Error"]["Code"]
     if actual_code != expected_code:
         raise AssertionError(
-            f"Error code mismatch: expected '{expected_code}', "
-            f"got '{actual_code}'"
+            f"Error code mismatch: expected '{expected_code}', " f"got '{actual_code}'"
         )
 
     return True
