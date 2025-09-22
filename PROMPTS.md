@@ -28,7 +28,7 @@ Use the origin/yamlconfig branch to embrace kconfig for this new project
 as a git subtree. You can see how ~/devel/kdevops/Makefile.subtrees does
 this.
 
-# Adopt ansible and Makefiles 
+# Adopt ansible and Makefiles
 
 Learn to adopt Makefile targets for ansible targets as we do in kdevops,
 you can use the kdevops/workflows/demos/reboot-limit/ as a simple demo
