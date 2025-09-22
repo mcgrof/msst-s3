@@ -1,0 +1,81 @@
+---
+# S3 test setup role
+
+- name: Create test directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "{{ test_dir }}"
+    - "{{ results_dir }}"
+    - "{{ test_dir }}/tests"
+    - "{{ test_dir }}/scripts"
+
+- name: Install Python dependencies
+  pip:
+    name:
+      - boto3>=1.26.0
+      - pytest>=7.0.0
+      - pyyaml>=6.0
+      - click>=8.0.0
+      - tabulate>=0.9.0
+      - jsonschema>=4.0.0
+      - jinja2>=3.0.0
+      - requests>=2.28.0
+    state: present
+    executable: pip3
+
+- name: Copy test framework to target
+  synchronize:
+    src: "{{ playbook_dir }}/../tests/"
+    dest: "{{ test_dir }}/tests/"
+    delete: yes
+    recursive: yes
+
+- name: Copy test scripts to target
+  synchronize:
+    src: "{{ playbook_dir }}/../scripts/"
+    dest: "{{ test_dir }}/scripts/"
+    delete: yes
+    recursive: yes
+
+- name: Generate S3 configuration file
+  template:
+    src: s3_config.yaml.j2
+    dest: "{{ s3_config_file }}"
+    mode: '0644'
+
+- name: Validate S3 endpoint connectivity
+  uri:
+    url: "{{ s3_endpoint_url | default('http://localhost:9000') }}"
+    method: HEAD
+    status_code: [200, 403, 405]
+    timeout: 10
+  ignore_errors: yes
+  register: endpoint_check
+
+- name: Display endpoint status
+  debug:
+    msg: "S3 endpoint {{ s3_endpoint_url }} is {{ 'reachable' if endpoint_check.status is defined else 'not reachable' }}"
+
+- name: Create test bucket for validation
+  amazon.aws.s3_bucket:
+    name: "{{ s3_bucket_prefix }}-validation"
+    state: present
+    endpoint_url: "{{ s3_endpoint_url | default(omit) }}"
+    aws_access_key: "{{ s3_access_key | default(omit) }}"
+    aws_secret_key: "{{ s3_secret_key | default(omit) }}"
+  when: endpoint_check.status is defined
+  ignore_errors: yes
+  register: validation_bucket
+
+- name: Remove validation bucket
+  amazon.aws.s3_bucket:
+    name: "{{ s3_bucket_prefix }}-validation"
+    state: absent
+    endpoint_url: "{{ s3_endpoint_url | default(omit) }}"
+    aws_access_key: "{{ s3_access_key | default(omit) }}"
+    aws_secret_key: "{{ s3_secret_key | default(omit) }}"
+  when: validation_bucket is succeeded
+  ignore_errors: yes

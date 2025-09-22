@@ -1,0 +1,62 @@
+---
+# S3 test results collection role
+
+- name: Find all result files
+  find:
+    paths: "{{ results_dir }}"
+    patterns: "*.json,*.xml,*.txt,*.yaml"
+    recurse: yes
+  register: result_files
+
+- name: Create local results directory
+  local_action:
+    module: file
+    path: "{{ playbook_dir }}/../results/{{ inventory_hostname }}"
+    state: directory
+    mode: '0755'
+  become: no
+
+- name: Fetch test results to controller
+  fetch:
+    src: "{{ item.path }}"
+    dest: "{{ playbook_dir }}/../results/{{ inventory_hostname }}/"
+    flat: no
+  loop: "{{ result_files.files }}"
+  when: result_files.files | length > 0
+
+- name: Generate consolidated report
+  template:
+    src: consolidated_report.html.j2
+    dest: "{{ results_dir }}/consolidated_report.html"
+  when: output_format | default('json') == 'html'
+
+- name: Archive results
+  archive:
+    path: "{{ results_dir }}/{{ test_timestamp | default('*') }}"
+    dest: "{{ results_dir }}/s3_test_results_{{ test_timestamp | default(ansible_date_time.epoch) }}.tar.gz"
+    format: gz
+  when: result_files.files | length > 0
+
+- name: Display results summary
+  debug:
+    msg: |
+      Test Results Summary:
+      - Total result files: {{ result_files.files | length }}
+      - Results archived to: {{ results_dir }}/s3_test_results_{{ test_timestamp | default(ansible_date_time.epoch) }}.tar.gz
+      - Local copy available at: {{ playbook_dir }}/../results/{{ inventory_hostname }}/
+
+- name: Check for test failures
+  shell: |
+    grep -l '"status": "FAILED"' {{ results_dir }}/{{ test_timestamp | default('*') }}/*.json 2>/dev/null | wc -l
+  register: failure_count
+  ignore_errors: yes
+
+- name: Report test status
+  debug:
+    msg: |
+      {% if failure_count.stdout | int > 0 %}
+      WARNING: {{ failure_count.stdout }} test group(s) reported failures.
+      Please review the detailed results for more information.
+      {% else %}
+      SUCCESS: All test groups completed successfully.
+      {% endif %}

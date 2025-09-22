@@ -1,0 +1,31 @@
+---
+# Main S3 test execution playbook
+
+- name: Execute S3 interoperability tests
+  hosts: test_nodes
+  become: false
+  gather_facts: yes
+  vars_files:
+    - "{{ playbook_dir }}/../extra_vars.yaml"
+  vars:
+    test_dir: "/opt/msst-s3"
+    results_dir: "/var/log/msst-s3/results"
+    s3_config_file: "{{ test_dir }}/s3_config.yaml"
+
+  pre_tasks:
+    - name: Display test configuration
+      debug:
+        msg: "Running S3 tests against endpoint: {{ s3_endpoint_url | default('http://localhost:9000') }}"
+
+  roles:
+    - role: s3-setup
+      tags: ['setup']
+    - role: s3-tests
+      tags: ['test']
+    - role: s3-results
+      tags: ['results']
+
+  post_tasks:
+    - name: Test execution complete
+      debug:
+        msg: "S3 tests completed. Results available at {{ results_dir }}"

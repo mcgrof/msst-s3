@@ -1,0 +1,129 @@
+---
+# S3 test execution role
+
+- name: Set test execution timestamp
+  set_fact:
+    test_timestamp: "{{ ansible_date_time.epoch }}"
+
+- name: Create results directory for this run
+  file:
+    path: "{{ results_dir }}/{{ test_timestamp }}"
+    state: directory
+    mode: '0755'
+
+- name: Run basic S3 tests
+  command: >
+    python3 {{ test_dir }}/scripts/test-runner.py
+    --config {{ s3_config_file }}
+    --group basic
+    --output-dir {{ results_dir }}/{{ test_timestamp }}
+    --output-format json
+    {% if output_verbose | default(1) > 1 %}--verbose{% endif %}
+  when: test_basic | default(true)
+  register: basic_test_result
+  ignore_errors: yes
+
+- name: Run multipart upload tests
+  command: >
+    python3 {{ test_dir }}/scripts/test-runner.py
+    --config {{ s3_config_file }}
+    --group multipart
+    --output-dir {{ results_dir }}/{{ test_timestamp }}
+    --output-format json
+    {% if output_verbose | default(1) > 1 %}--verbose{% endif %}
+  when: test_multipart | default(true)
+  register: multipart_test_result
+  ignore_errors: yes
+
+- name: Run versioning tests
+  command: >
+    python3 {{ test_dir }}/scripts/test-runner.py
+    --config {{ s3_config_file }}
+    --group versioning
+    --output-dir {{ results_dir }}/{{ test_timestamp }}
+    --output-format json
+    {% if output_verbose | default(1) > 1 %}--verbose{% endif %}
+  when: test_versioning | default(false)
+  register: versioning_test_result
+  ignore_errors: yes
+
+- name: Run ACL tests
+  command: >
+    python3 {{ test_dir }}/scripts/test-runner.py
+    --config {{ s3_config_file }}
+    --group acl
+    --output-dir {{ results_dir }}/{{ test_timestamp }}
+    --output-format json
+    {% if output_verbose | default(1) > 1 %}--verbose{% endif %}
+  when: test_acl | default(false)
+  register: acl_test_result
+  ignore_errors: yes
+
+- name: Run encryption tests
+  command: >
+    python3 {{ test_dir }}/scripts/test-runner.py
+    --config {{ s3_config_file }}
+    --group encryption
+    --output-dir {{ results_dir }}/{{ test_timestamp }}
+    --output-format json
+    {% if output_verbose | default(1) > 1 %}--verbose{% endif %}
+  when: test_encryption | default(false)
+  register: encryption_test_result
+  ignore_errors: yes
+
+- name: Run lifecycle tests
+  command: >
+    python3 {{ test_dir }}/scripts/test-runner.py
+    --config {{ s3_config_file }}
+    --group lifecycle
+    --output-dir {{ results_dir }}/{{ test_timestamp }}
+    --output-format json
+    {% if output_verbose | default(1) > 1 %}--verbose{% endif %}
+  when: test_lifecycle | default(false)
+  register: lifecycle_test_result
+  ignore_errors: yes
+
+- name: Run performance tests
+  command: >
+    python3 {{ test_dir }}/scripts/test-runner.py
+    --config {{ s3_config_file }}
+    --group performance
+    --output-dir {{ results_dir }}/{{ test_timestamp }}
+    --output-format json
+    {% if output_verbose | default(1) > 1 %}--verbose{% endif %}
+  when: test_performance | default(false)
+  register: performance_test_result
+  ignore_errors: yes
+
+- name: Run stress tests
+  command: >
+    python3 {{ test_dir }}/scripts/test-runner.py
+    --config {{ s3_config_file }}
+    --group stress
+    --output-dir {{ results_dir }}/{{ test_timestamp }}
+    --output-format json
+    {% if output_verbose | default(1) > 1 %}--verbose{% endif %}
+  when: test_stress | default(false)
+  register: stress_test_result
+  ignore_errors: yes
+
+- name: Collect test results
+  set_fact:
+    all_test_results:
+      - { name: "basic", result: "{{ basic_test_result | default({}) }}" }
+      - { name: "multipart", result: "{{ multipart_test_result | default({}) }}" }
+      - { name: "versioning", result: "{{ versioning_test_result | default({}) }}" }
+      - { name: "acl", result: "{{ acl_test_result | default({}) }}" }
+      - { name: "encryption", result: "{{ encryption_test_result | default({}) }}" }
+      - { name: "lifecycle", result: "{{ lifecycle_test_result | default({}) }}" }
+      - { name: "performance", result: "{{ performance_test_result | default({}) }}" }
+      - { name: "stress", result: "{{ stress_test_result | default({}) }}" }
+
+- name: Generate test summary
+  template:
+    src: test_summary.txt.j2
+    dest: "{{ results_dir }}/{{ test_timestamp }}/summary.txt"
+
+- name: Display test summary
+  debug:
+    msg: "Test execution complete. Results saved to {{ results_dir }}/{{ test_timestamp }}/"

@@ -1,0 +1,21 @@
+# MSST-S3 Ansible Inventory
+#
+# This is a sample inventory file for running S3 tests.
+# Modify according to your test environment.
+
+[test_nodes]
+# For local testing
+localhost ansible_connection=local
+
+# For remote testing (uncomment and modify as needed)
+# test-node1 ansible_host=192.168.1.100 ansible_user=testuser
+# test-node2 ansible_host=192.168.1.101 ansible_user=testuser
+
+[test_nodes:vars]
+# Common variables for all test nodes
+ansible_python_interpreter=/usr/bin/python3
+
+# S3 endpoint configuration (can be overridden per host)
+# s3_endpoint_url=http://192.168.1.50:9000
+# s3_access_key=testkey
+# s3_secret_key=testsecret

@@ -1,0 +1,51 @@
+---
+# Default variables for s3-setup role
+
+# Test directories
+test_dir: "/opt/msst-s3"
+results_dir: "/var/log/msst-s3/results"
+
+# S3 configuration defaults
+s3_endpoint_url: "http://localhost:9000"
+s3_access_key: "minioadmin"
+s3_secret_key: "minioadmin"
+s3_region: "us-east-1"
+s3_use_ssl: false
+s3_verify_ssl: true
+s3_bucket_prefix: "msst-test"
+
+# Test selection defaults
+test_basic: true
+test_multipart: true
+test_versioning: false
+test_acl: false
+test_encryption: false
+test_lifecycle: false
+test_performance: false
+test_stress: false
+test_compatibility: false
+
+# Test parameters defaults
+test_run_mode: "sequential"
+test_parallel_jobs: 4
+test_timeout: 300
+test_retry_count: 3
+test_object_sizes: "1KB,1MB,10MB,100MB"
+test_bucket_count: 5
+test_object_count: 10
+
+# Output configuration defaults
+output_format: "json"
+output_verbose: 1
+output_timestamp: true
+output_save_logs: true
+
+# Vendor configuration
+vendor_type: "generic"
+vendor_skip_tests: ""
+
+# Debug options
+debug_enabled: false
+debug_keep_buckets: false
+debug_dump_requests: false
+debug_slow_mode: false

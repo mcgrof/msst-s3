@@ -1,0 +1,28 @@
+================================================================================
+S3 Interoperability Test Suite - Execution Summary
+================================================================================
+
+Test Execution Time: {{ ansible_date_time.iso8601 }}
+S3 Endpoint: {{ s3_endpoint_url | default('http://localhost:9000') }}
+Vendor Type: {{ vendor_type | default('generic') }}
+
+Test Groups Executed:
+--------------------------------------------------------------------------------
+{% for test_group in all_test_results %}
+{% if test_group.result.rc is defined %}
+  {{ "%-20s" | format(test_group.name | upper) }}: {{ "PASSED" if test_group.result.rc == 0 else "FAILED" }}
+{% endif %}
+{% endfor %}
+
+Detailed Results:
+--------------------------------------------------------------------------------
+{% for test_group in all_test_results %}
+{% if test_group.result.stdout is defined %}
+{{ test_group.name | upper }}:
+{{ test_group.result.stdout }}
+--------------------------------------------------------------------------------
+{% endif %}
+{% endfor %}
+
+Results Location: {{ results_dir }}/{{ test_timestamp }}/
+================================================================================
