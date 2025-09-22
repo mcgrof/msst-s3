@@ -356,6 +356,62 @@ style:
 	@black scripts/*.py tests/common/*.py 2>/dev/null || true
 	@echo "Style formatting complete"
 
+# Docker S3 provider management
+.PHONY: docker-up
+docker-up:
+	@echo "Starting S3 provider containers..."
+	@docker-compose up -d $(PROVIDER)
+	@echo "Waiting for services to be ready..."
+	@sleep 5
+	@echo "S3 providers are ready"
+
+.PHONY: docker-down
+docker-down:
+	@echo "Stopping S3 provider containers..."
+	@docker-compose down
+	@echo "S3 providers stopped"
+
+.PHONY: docker-status
+docker-status:
+	@echo "S3 provider container status:"
+	@docker-compose ps
+
+.PHONY: docker-logs
+docker-logs:
+	@docker-compose logs $(if $(PROVIDER),$(PROVIDER),)
+
+# Start specific S3 providers
+.PHONY: docker-minio
+docker-minio:
+	@$(MAKE) docker-up PROVIDER=minio
+
+.PHONY: docker-localstack
+docker-localstack:
+	@$(MAKE) docker-up PROVIDER=localstack
+
+.PHONY: docker-garage
+docker-garage:
+	@$(MAKE) docker-up PROVIDER=garage
+
+.PHONY: docker-seaweedfs
+docker-seaweedfs:
+	@$(MAKE) docker-up PROVIDER=seaweedfs
+
+.PHONY: docker-ceph
+docker-ceph:
+	@$(MAKE) docker-up PROVIDER=ceph
+
+# Synthetic data population
+.PHONY: populate-data
+populate-data:
+	@echo "Populating synthetic test data..."
+	@$(PYTHON) scripts/populate-data.py --config $(KCONFIG_YAMLCFG)
+
+# Test with Docker provider and data population
+.PHONY: test-with-docker
+test-with-docker: docker-up populate-data test
+	@echo "Docker-based testing complete"
+
 # Include dependency tracking
 -include .depend
 

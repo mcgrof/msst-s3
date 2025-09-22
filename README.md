@@ -58,10 +58,24 @@ make install-deps
 
 The simplest way to start testing S3 compatibility:
 
-#### Option 1: Local MinIO Testing (Recommended for First-Time Users)
+#### Option 1: Automated Docker Demo (Recommended)
 
 ```bash
-# Start MinIO in Docker (if not already running)
+# Full automated demo with MinIO, synthetic data, and tests
+make defconfig-docker-demo
+make test-with-docker
+
+# This will:
+# 1. Start MinIO in Docker
+# 2. Populate synthetic test data
+# 3. Run compatibility tests
+# 4. Generate results report
+```
+
+#### Option 2: Manual MinIO Setup
+
+```bash
+# Start MinIO manually
 docker run -d --name minio \
   -p 9000:9000 -p 9001:9001 \
   -e MINIO_ROOT_USER=minioadmin \
@@ -70,14 +84,6 @@ docker run -d --name minio \
 
 # Configure and run basic tests
 make defconfig-basic
-make test
-```
-
-#### Option 2: Test Against Existing MinIO Instance
-
-```bash
-# Use the MinIO-specific configuration
-make defconfig-minio-local
 make test
 ```
 
@@ -99,9 +105,17 @@ make test
 
 Pre-configured test profiles for common scenarios:
 
+**Basic Configurations:**
 - **basic**: Minimal configuration for quick S3 compatibility checks
 - **minio-local**: Test against local MinIO instance (localhost:9000)
 - **aws-s3**: Full test suite for AWS S3 (requires credentials)
+
+**Docker-based Configurations:**
+- **docker-demo**: Automated demo with MinIO and synthetic data
+- **docker-localstack**: Test against LocalStack (AWS emulator)
+- **docker-ceph**: Test against Ceph RadosGW
+- **docker-garage**: Test against Garage S3
+- **docker-seaweedfs**: Test against SeaweedFS S3
 
 ### Manual Configuration
 
@@ -137,6 +151,72 @@ make test TEST=001
 
 # Run tests for a specific group
 make test GROUP=acl
+```
+
+## Docker S3 Providers
+
+MSST-S3 includes Docker configurations for testing multiple S3 implementations
+without manual setup:
+
+### Available S3 Providers
+
+| Provider | Port | Endpoint | Description |
+|----------|------|----------|-------------|
+| MinIO | 9000 | http://localhost:9000 | High-performance S3-compatible storage |
+| LocalStack | 4566 | http://localhost:4566 | AWS services emulator |
+| Ceph RadosGW | 8082 | http://localhost:8082 | Ceph's S3 interface |
+| Garage | 3900 | http://localhost:3900 | Distributed S3 storage |
+| SeaweedFS | 8333 | http://localhost:8333 | Distributed file system with S3 API |
+
+### Docker Commands
+
+```bash
+# Start all S3 providers
+make docker-up
+
+# Start specific provider
+make docker-minio
+make docker-localstack
+make docker-ceph
+
+# Check status
+make docker-status
+
+# View logs
+make docker-logs PROVIDER=minio
+
+# Stop all containers
+make docker-down
+```
+
+### Synthetic Data Population
+
+Generate test data automatically:
+
+```bash
+# Populate data after configuring endpoint
+make populate-data
+
+# The script creates:
+# - Multiple buckets with different configurations
+# - Objects of various sizes (1KB to 10MB)
+# - Different file types (binary, text, JSON, CSV)
+# - Nested directory structures
+# - Versioned objects (if supported)
+```
+
+### Automated Testing Workflow
+
+```bash
+# Complete automated test with Docker provider
+make defconfig-docker-demo    # Configure for Docker MinIO
+make docker-minio             # Start MinIO container
+make populate-data            # Generate test data
+make test                     # Run tests
+
+# Or use the all-in-one command:
+make defconfig-docker-demo
+make test-with-docker
 ```
 
 ## Testing Multiple S3 Implementations
