@@ -16,6 +16,14 @@ export KCONFIG_YAMLCFG := $(CURDIR)/s3_config.yaml
 include $(KCONFIG_DIR)/kconfig.Makefile
 include Makefile.subtrees
 
+# Defconfig support
+DEFCONFIGS := $(notdir $(wildcard defconfigs/*))
+$(foreach cfg,$(DEFCONFIGS),$(eval defconfig-$(cfg): defconfigs/$(cfg)))
+
+defconfig-%: $(KCONFIG_DIR)/conf Kconfig
+	@echo "Loading defconfig: $*"
+	@$(KCONFIG_DIR)/conf --defconfig=defconfigs/$* Kconfig
+
 # Python setup
 PYTHON := python3
 PIP := pip3
@@ -76,6 +84,11 @@ help:
 	@echo "  make menuconfig     - Interactive menu configuration"
 	@echo "  make defconfig      - Use default configuration"
 	@echo "  make oldconfig      - Update existing configuration"
+	@echo ""
+	@echo "Available defconfigs:"
+	@for cfg in $(DEFCONFIGS); do \
+		echo "  make defconfig-$$cfg"; \
+	done
 	@echo ""
 	@echo "Test targets:"
 	@echo "  make test           - Run all enabled tests"

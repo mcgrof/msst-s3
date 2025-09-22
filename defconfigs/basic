@@ -1,0 +1,45 @@
+# Basic S3 testing configuration
+# Minimal configuration for basic S3 compatibility testing
+
+# S3 Endpoint - defaults to local MinIO for easy testing
+CONFIG_S3_ENDPOINT_URL="http://localhost:9000"
+CONFIG_S3_ACCESS_KEY="minioadmin"
+CONFIG_S3_SECRET_KEY="minioadmin"
+CONFIG_S3_REGION="us-east-1"
+CONFIG_S3_USE_SSL=n
+CONFIG_S3_BUCKET_PREFIX="msst-basic"
+
+# Enable only basic tests for quick validation
+CONFIG_TEST_BASIC=y
+CONFIG_TEST_MULTIPART=n
+CONFIG_TEST_VERSIONING=n
+CONFIG_TEST_ACL=n
+CONFIG_TEST_ENCRYPTION=n
+CONFIG_TEST_LIFECYCLE=n
+CONFIG_TEST_PERFORMANCE=n
+CONFIG_TEST_STRESS=n
+CONFIG_TEST_COMPATIBILITY=n
+
+# Simple test parameters
+CONFIG_TEST_RUN_MODE="sequential"
+CONFIG_TEST_TIMEOUT=60
+CONFIG_TEST_RETRY_COUNT=2
+CONFIG_TEST_OBJECT_SIZES="1KB,1MB"
+CONFIG_TEST_BUCKET_COUNT=2
+CONFIG_TEST_OBJECT_COUNT=5
+
+# Minimal output settings
+CONFIG_OUTPUT_FORMAT="json"
+CONFIG_OUTPUT_VERBOSE=1
+CONFIG_OUTPUT_DIR="./results"
+CONFIG_OUTPUT_TIMESTAMP=y
+CONFIG_OUTPUT_SAVE_LOGS=y
+
+# No Ansible for basic setup
+CONFIG_ANSIBLE_ENABLED=n
+
+# Generic vendor type
+CONFIG_VENDOR_TYPE="generic"
+
+# No debug by default
+CONFIG_DEBUG_ENABLED=n

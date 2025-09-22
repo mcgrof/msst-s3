@@ -40,7 +40,7 @@ MSST-S3 enables you to:
 ### Prerequisites
 
 - Python 3.8 or higher
-- Access to one or more S3-compatible endpoints
+- Access to one or more S3-compatible endpoints (or use local MinIO)
 - S3 credentials (access key and secret key)
 
 ### Installation
@@ -54,9 +54,58 @@ cd msst-s3
 make install-deps
 ```
 
-### Configuration
+### Basic Testing (Fastest Start)
 
-MSST-S3 uses an interactive menu-based configuration system:
+The simplest way to start testing S3 compatibility:
+
+#### Option 1: Local MinIO Testing (Recommended for First-Time Users)
+
+```bash
+# Start MinIO in Docker (if not already running)
+docker run -d --name minio \
+  -p 9000:9000 -p 9001:9001 \
+  -e MINIO_ROOT_USER=minioadmin \
+  -e MINIO_ROOT_PASSWORD=minioadmin \
+  quay.io/minio/minio server /data --console-address ":9001"
+
+# Configure and run basic tests
+make defconfig-basic
+make test
+```
+
+#### Option 2: Test Against Existing MinIO Instance
+
+```bash
+# Use the MinIO-specific configuration
+make defconfig-minio-local
+make test
+```
+
+#### Option 3: Test Against AWS S3
+
+```bash
+# Load AWS configuration template
+make defconfig-aws-s3
+
+# Edit .config to add your AWS credentials
+vi .config
+# Set CONFIG_S3_ACCESS_KEY and CONFIG_S3_SECRET_KEY
+
+# Run tests
+make test
+```
+
+### Available Defconfigs
+
+Pre-configured test profiles for common scenarios:
+
+- **basic**: Minimal configuration for quick S3 compatibility checks
+- **minio-local**: Test against local MinIO instance (localhost:9000)
+- **aws-s3**: Full test suite for AWS S3 (requires credentials)
+
+### Manual Configuration
+
+For custom configurations, use the interactive menu system:
 
 ```bash
 # Configure your S3 endpoints and test parameters
