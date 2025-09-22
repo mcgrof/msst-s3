@@ -1,0 +1,53 @@
+---
+# Example S3 configuration file
+# Copy this to s3_config.yaml and update with your actual values
+# WARNING: Never commit s3_config.yaml with real credentials!
+
+# S3 Endpoint Configuration
+s3_endpoint_url: "http://localhost:9000"  # Your S3 endpoint URL
+s3_access_key: "your-access-key"          # Replace with your access key
+s3_secret_key: "your-secret-key"          # Replace with your secret key
+s3_region: "us-east-1"                    # AWS region or S3 region
+s3_use_ssl: false                         # Enable SSL/TLS
+s3_bucket_prefix: "msst-test"             # Prefix for test bucket names
+
+# Test Selection
+test_basic: true          # Basic CRUD operations (001-099)
+test_multipart: true      # Multipart upload tests (100-199)
+test_versioning: false    # Object versioning tests (200-299)
+test_acl: false          # Access control tests (300-399)
+test_encryption: false   # Encryption tests (400-499)
+test_lifecycle: false    # Lifecycle management tests (500-599)
+test_performance: false  # Performance benchmarks (600-699)
+test_stress: false       # Stress tests (700-799)
+test_compatibility: false # Compatibility mode tests
+
+# Test Execution Parameters
+test_run_mode: "sequential"  # sequential or parallel
+test_timeout: 300            # Test timeout in seconds
+test_retry_count: 3          # Number of retries for failed tests
+test_object_sizes: "1KB,1MB,10MB,100MB"  # Object sizes for tests
+test_bucket_count: 5         # Number of buckets to create in tests
+test_object_count: 10        # Number of objects per test
+
+# Output Configuration
+output_format: "json"        # Output format: json, xml, csv
+output_verbose: 1            # Verbosity level (0-3)
+output_dir: "./results"      # Directory for test results
+output_timestamp: true       # Add timestamp to output files
+output_save_logs: true       # Save detailed logs
+
+# Ansible Integration
+ansible_enabled: false       # Enable Ansible integration
+ansible_inventory: ""        # Path to Ansible inventory
+
+# Vendor-Specific Settings
+vendor_type: "generic"       # aws, minio, ceph, generic
+vendor_skip_tests: ""        # Comma-separated list of tests to skip
+vendor_specific_config: ""   # Path to vendor-specific config file
+
+# Debug Options
+debug_enabled: false         # Enable debug mode
+debug_keep_buckets: false    # Keep test buckets after tests
+debug_dump_requests: false   # Dump HTTP requests/responses
+debug_slow_mode: false       # Add delays for debugging

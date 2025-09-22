@@ -1,3 +1,10 @@
 include
 .config
 .config.old
+s3_config.yaml
+extra_vars.yaml
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+results/
