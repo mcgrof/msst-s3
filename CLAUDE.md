@@ -8,6 +8,9 @@ Signed-off-by
 Use:
 
 Generated-by: Claude AI
+Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
+
+If another AI is used, use an appropriate tag for the AI.
 
 # Black
 
