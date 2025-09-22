@@ -8,7 +8,12 @@ Why wait?
 
 ## Overview
 
-MSST-S3 is a comprehensive interoperability testing framework designed to validate S3 API compatibility across different storage implementations. Whether you're developing an S3-compatible storage system, evaluating vendor solutions, or ensuring consistent behavior across multiple S3 providers, MSST-S3 provides a standardized test suite to verify compliance and identify implementation differences.
+MSST-S3 is a comprehensive interoperability testing framework designed to
+validate S3 API compatibility across different storage implementations. Whether
+you're developing an S3-compatible storage system, evaluating vendor solutions,
+or ensuring consistent behavior across multiple S3 providers, MSST-S3 provides
+a standardized test suite to verify compliance and identify implementation
+differences.
 
 ## Purpose
 

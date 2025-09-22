@@ -15,3 +15,7 @@ If another AI is used, use an appropriate tag for the AI.
 # Black
 
 Black should be used on all python scripts.
+
+# Docs
+
+Keep max column length to 80 characters.
