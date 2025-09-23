@@ -170,10 +170,22 @@ config TEST_RUN_MODE
 	  - parallel: Run tests in parallel
 	  - group: Run test groups in parallel
 
+config TEST_PARALLEL_ALL
+	bool "Run ALL tests in parallel simultaneously"
+	output yaml
+	default n
+	help
+	  WARNING: This will run ALL tests at the same time!
+	  This can create thousands of concurrent connections and
+	  may overwhelm the S3 endpoint or your system.
+	  Only enable for stress testing with adequate resources.
+	  When enabled, overrides TEST_PARALLEL_JOBS setting.
+
 config TEST_PARALLEL_JOBS
 	int "Parallel test jobs"
 	output yaml
 	depends on TEST_RUN_MODE = "parallel" || TEST_RUN_MODE = "group"
+	depends on !TEST_PARALLEL_ALL
 	default 4
 	range 1 32
 	help

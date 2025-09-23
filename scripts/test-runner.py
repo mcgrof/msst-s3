@@ -12,6 +12,7 @@ import time
 import click
 import importlib.util
 import traceback
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Any, Optional
@@ -466,33 +467,91 @@ def main(config, test, group, output_dir, output_format, verbose, list_tests):
     # Sort tests by ID
     tests_to_run = sorted(tests_to_run, key=lambda t: t["id"])
 
-    click.echo(f"Running {len(tests_to_run)} tests...")
+    # Check if parallel all mode is enabled
+    parallel_all = test_config.get("test_parallel_all", False)
+    run_mode = test_config.get("test_run_mode", "sequential")
+    parallel_jobs = test_config.get("test_parallel_jobs", 4)
+
+    if parallel_all:
+        click.echo(f"Running {len(tests_to_run)} tests in PARALLEL ALL mode...")
+        click.echo("WARNING: All tests will run simultaneously!")
+        # When parallel_all is enabled, run all tests at once
+        parallel_jobs = len(tests_to_run)
+        run_mode = "parallel"
+    else:
+        click.echo(f"Running {len(tests_to_run)} tests...")
 
     # Execute tests
     executor = TestExecutor(test_config)
     results = []
 
-    for test_info in tests_to_run:
-        if verbose:
-            click.echo(
-                f"Running test {test_info['id']}: {test_info['name']} ({test_info['group']})..."
-            )
+    if run_mode == "parallel" and parallel_jobs > 1:
+        # Parallel execution
+        with ThreadPoolExecutor(max_workers=parallel_jobs) as executor_pool:
+            # Submit all test tasks
+            future_to_test = {}
+            for test_info in tests_to_run:
+                if verbose:
+                    click.echo(
+                        f"Submitting test {test_info['id']}: {test_info['name']} ({test_info['group']})..."
+                    )
+                future = executor_pool.submit(executor.execute_test, test_info)
+                future_to_test[future] = test_info
 
-        result = executor.execute_test(test_info)
-        results.append(result)
+            # Collect results as they complete
+            for future in as_completed(future_to_test):
+                test_info = future_to_test[future]
+                try:
+                    result = future.result()
+                    results.append(result)
 
-        # Show immediate feedback
-        status_char = {
-            TestStatus.PASSED: "✓",
-            TestStatus.FAILED: "✗",
-            TestStatus.SKIPPED: "○",
-            TestStatus.ERROR: "!",
-        }.get(result.status, "?")
+                    # Show immediate feedback
+                    status_char = {
+                        TestStatus.PASSED: "✓",
+                        TestStatus.FAILED: "✗",
+                        TestStatus.SKIPPED: "○",
+                        TestStatus.ERROR: "!",
+                    }.get(result.status, "?")
 
-        if verbose or result.status != TestStatus.PASSED:
-            click.echo(f"[{status_char}] Test {result.test_id}: {result.status.value}")
-            if result.message and result.status != TestStatus.PASSED:
-                click.echo(f"  {result.message}")
+                    if verbose or result.status != TestStatus.PASSED:
+                        click.echo(f"[{status_char}] Test {result.test_id}: {result.status.value}")
+                        if result.message and result.status != TestStatus.PASSED:
+                            click.echo(f"  {result.message}")
+                except Exception as e:
+                    click.echo(f"[!] Test {test_info['id']} failed with exception: {e}")
+                    results.append(TestResult(
+                        test_id=test_info['id'],
+                        test_name=test_info['name'],
+                        test_group=test_info['group'],
+                        status=TestStatus.ERROR,
+                        duration=0.0,
+                        message=f"Execution failed: {str(e)}",
+                        error=traceback.format_exc(),
+                        timestamp=datetime.now().isoformat()
+                    ))
+    else:
+        # Sequential execution (original code)
+        for test_info in tests_to_run:
+            if verbose:
+                click.echo(
+                    f"Running test {test_info['id']}: {test_info['name']} ({test_info['group']})..."
+                )
+
+            result = executor.execute_test(test_info)
+            results.append(result)
+
+            # Show immediate feedback
+            status_char = {
+                TestStatus.PASSED: "✓",
+                TestStatus.FAILED: "✗",
+                TestStatus.SKIPPED: "○",
+                TestStatus.ERROR: "!",
+            }.get(result.status, "?")
+
+            if verbose or result.status != TestStatus.PASSED:
+                click.echo(f"[{status_char}] Test {result.test_id}: {result.status.value}")
+                if result.message and result.status != TestStatus.PASSED:
+                    click.echo(f"  {result.message}")
 
     # Format results
     formatter_map = {
