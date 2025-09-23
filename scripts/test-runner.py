@@ -79,8 +79,8 @@ class TestDiscovery:
             if not group_dir.exists():
                 continue
 
-            # Look for test files (e.g., 001, 002, 001.py, etc.)
-            for test_file in sorted(group_dir.glob("[0-9][0-9][0-9]*")):
+            # Look for test files (e.g., 1, 2, 001.py, 36.py, etc.)
+            for test_file in sorted(group_dir.glob("[0-9]*.py")):
                 if test_file.is_file():
                     test_id = test_file.stem.split(".")[0]  # Get numeric part
                     if test_id.isdigit():
@@ -99,9 +99,7 @@ class TestDiscovery:
 
     def get_test_by_id(self, test_id: str) -> Optional[Dict]:
         """Get a specific test by ID"""
-        # Ensure test_id is zero-padded
-        if test_id.isdigit():
-            test_id = test_id.zfill(3)
+        # Handle both formats: '36' and '036'
         return self.tests.get(test_id)
 
     def get_all_tests(self) -> List[Dict]:

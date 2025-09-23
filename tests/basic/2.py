@@ -1,0 +1,46 @@
+#!/usr/bin/env python3
+"""
+Test 2: Put and get a simple object
+
+Tests basic object upload and download operations.
+Verifies that data can be stored and retrieved correctly.
+"""
+
+from common.fixtures import TestFixture
+from common.validators import validate_object_exists, validate_object_content
+
+def test_2(s3_client, config):
+    """Put and get a simple object"""
+    fixture = TestFixture(s3_client, config)
+
+    try:
+        # Create a test bucket
+        bucket_name = fixture.create_test_bucket()
+
+        # Generate test data
+        test_data = b"Hello, S3! This is test data for object operations."
+        object_key = "test-object-002.txt"
+
+        # Put the object
+        response = s3_client.put_object(bucket_name, object_key, test_data)
+        assert 'ETag' in response, "PUT response missing ETag"
+
+        # Verify object exists
+        validate_object_exists(s3_client, bucket_name, object_key)
+
+        # Get the object
+        response = s3_client.get_object(bucket_name, object_key)
+        retrieved_data = response['Body'].read()
+
+        # Verify content matches
+        assert retrieved_data == test_data, "Retrieved data does not match original"
+        validate_object_content(s3_client, bucket_name, object_key, test_data)
+
+        # List objects and verify our object is present
+        objects = s3_client.list_objects(bucket_name)
+        object_keys = [obj['Key'] for obj in objects]
+        assert object_key in object_keys, f"Object {object_key} not found in object list"
+
+    finally:
+        # Cleanup
+        fixture.cleanup()
