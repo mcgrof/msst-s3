@@ -76,6 +76,16 @@ class TestDiscovery:
         "tiering": (1701, 1800),
         "access_points": (1801, 1900),
         "object_lambda": (1901, 2000),
+        "compliance": (2001, 2100),
+        "disaster_recovery": (2101, 2200),
+        "data_lake": (2201, 2300),
+        "ml_pipeline": (2301, 2400),
+        "iot_streaming": (2401, 2500),
+        "security": (2501, 2600),
+        "edge_computing": (2601, 2700),
+        "microservices": (2701, 2800),
+        "cost_optimization": (2801, 2900),
+        "hybrid_cloud": (2901, 3000),
     }
 
     def __init__(self, test_dir: Path):
