@@ -360,7 +360,7 @@ style:
 .PHONY: docker-up
 docker-up:
 	@echo "Starting S3 provider containers..."
-	@docker-compose up -d $(PROVIDER)
+	@$(PYTHON) scripts/docker-compose-wrapper.py up -d $(PROVIDER)
 	@echo "Waiting for services to be ready..."
 	@sleep 5
 	@echo "S3 providers are ready"
@@ -368,17 +368,17 @@ docker-up:
 .PHONY: docker-down
 docker-down:
 	@echo "Stopping S3 provider containers..."
-	@docker-compose down
+	@$(PYTHON) scripts/docker-compose-wrapper.py down
 	@echo "S3 providers stopped"
 
 .PHONY: docker-status
 docker-status:
 	@echo "S3 provider container status:"
-	@docker-compose ps
+	@$(PYTHON) scripts/docker-compose-wrapper.py ps
 
 .PHONY: docker-logs
 docker-logs:
-	@docker-compose logs $(if $(PROVIDER),$(PROVIDER),)
+	@$(PYTHON) scripts/docker-compose-wrapper.py logs $(if $(PROVIDER),$(PROVIDER),)
 
 # Start specific S3 providers
 .PHONY: docker-minio
