@@ -219,6 +219,63 @@ make defconfig-docker-demo
 make test-with-docker
 ```
 
+## Production Validation
+
+MSST-S3 includes a comprehensive production validation suite to verify S3
+systems are ready for production deployment.
+
+### Quick Production Check
+
+Run critical tests only (5-10 minutes):
+```bash
+python scripts/production-validation.py --config s3_config.yaml --quick
+```
+
+### Full Production Validation
+
+Complete production readiness assessment (30-60 minutes):
+```bash
+python scripts/production-validation.py --config s3_config.yaml
+```
+
+### Production Test Categories
+
+| Category | Tests | Coverage | Requirement |
+|----------|-------|----------|-------------|
+| **Critical - Data Integrity** | 004-006 | 30% | 100% pass |
+| **Error Handling** | 011-012 | 20% | 100% pass |
+| **Multipart Upload** | 100-102 | 15% | 100% pass |
+| **Versioning** | 200 | 5% | 80% pass |
+| **Performance** | 600-601 | 10% | 90% pass |
+
+### Production Criteria
+
+The validation script checks:
+- ✅ **Data Integrity**: 100% verification with checksums
+- ✅ **Latency**: p99 < 1 second for small objects
+- ✅ **Throughput**: > 10 MB/s for large objects
+- ✅ **Concurrency**: Handle 50+ simultaneous operations
+- ✅ **Error Recovery**: Automatic retry with exponential backoff
+
+### Validation Output
+
+```
+S3 PRODUCTION VALIDATION SUITE
+================================================================================
+✓ Critical Data Integrity: 100.0% (3/3 passed)
+✓ Error Handling & Recovery: 100.0% (2/2 passed)
+✓ Multipart Operations: 100.0% (3/3 passed)
+✓ Performance Benchmarks: 100.0% (2/2 passed)
+
+Overall: 100.0% passed
+================================================================================
+✓ PRODUCTION READY - All requirements met
+```
+
+Reports are generated in:
+- `validation-report.json` - Machine-readable results
+- `validation-report.txt` - Human-readable summary
+
 ## Testing Multiple S3 Implementations
 
 ### Comparative Testing Workflow
