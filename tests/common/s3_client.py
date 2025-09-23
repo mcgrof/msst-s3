@@ -141,6 +141,16 @@ class S3Client:
             logger.error(f"Error getting object {bucket_name}/{key}: {e}")
             raise
 
+    def head_object(self, bucket_name: str, key: str, **kwargs) -> Dict[str, Any]:
+        """Get object metadata without downloading the object"""
+        try:
+            response = self.client.head_object(Bucket=bucket_name, Key=key, **kwargs)
+            logger.debug(f"Head object: {bucket_name}/{key}")
+            return response
+        except ClientError as e:
+            logger.error(f"Error getting head for object {bucket_name}/{key}: {e}")
+            raise
+
     def delete_object(self, bucket_name: str, key: str, **kwargs) -> Dict[str, Any]:
         """Delete an object"""
         try:
@@ -316,25 +326,34 @@ class S3Client:
             raise
 
     # Versioning operations
-    def put_bucket_versioning(self, bucket_name: str, status: str) -> Dict[str, Any]:
+    def put_bucket_versioning(self, bucket_name: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """Enable/disable bucket versioning"""
         try:
             response = self.client.put_bucket_versioning(
-                Bucket=bucket_name, VersioningConfiguration={"Status": status}
+                Bucket=bucket_name, VersioningConfiguration=config
             )
-            logger.debug(f"Set bucket versioning: {bucket_name} -> {status}")
+            logger.debug(f"Set bucket versioning: {bucket_name} -> {config}")
             return response
         except ClientError as e:
             logger.error(f"Error setting bucket versioning: {e}")
             raise
 
-    def get_bucket_versioning(self, bucket_name: str) -> str:
+    def get_bucket_versioning(self, bucket_name: str) -> Dict[str, Any]:
         """Get bucket versioning status"""
         try:
             response = self.client.get_bucket_versioning(Bucket=bucket_name)
-            return response.get("Status", "Disabled")
+            return response
         except ClientError as e:
             logger.error(f"Error getting bucket versioning: {e}")
+            raise
+
+    def list_object_versions(self, bucket_name: str, **kwargs) -> Dict[str, Any]:
+        """List object versions in a bucket"""
+        try:
+            response = self.client.list_object_versions(Bucket=bucket_name, **kwargs)
+            return response
+        except ClientError as e:
+            logger.error(f"Error listing object versions: {e}")
             raise
 
     # Lifecycle operations

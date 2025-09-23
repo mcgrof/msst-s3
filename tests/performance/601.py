@@ -79,14 +79,13 @@ def test_601(s3_client, config):
                 )
                 write_threads.append(thread)
 
-                # Control concurrency
-                if len([t for t in write_threads if t.is_alive()]) >= concurrent_count:
-                    # Wait for some threads to complete
-                    for t in write_threads:
-                        if not t.is_alive():
-                            t.join()
-
+                # Start thread first
                 thread.start()
+
+                # Control concurrency by waiting if we have too many active threads
+                while len([t for t in write_threads if t.is_alive()]) >= concurrent_count:
+                    # Wait a bit for threads to complete
+                    time.sleep(0.01)
 
             # Wait for all writes to complete
             for thread in write_threads:
@@ -108,13 +107,13 @@ def test_601(s3_client, config):
                 )
                 read_threads.append(thread)
 
-                # Control concurrency
-                if len([t for t in read_threads if t.is_alive()]) >= concurrent_count:
-                    for t in read_threads:
-                        if not t.is_alive():
-                            t.join()
-
+                # Start thread first
                 thread.start()
+
+                # Control concurrency by waiting if we have too many active threads
+                while len([t for t in read_threads if t.is_alive()]) >= concurrent_count:
+                    # Wait a bit for threads to complete
+                    time.sleep(0.01)
 
             # Wait for all reads to complete
             for thread in read_threads:

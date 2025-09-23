@@ -74,7 +74,7 @@ def test_200(s3_client, config):
                 response = s3_client.get_object(
                     bucket_name,
                     object_key,
-                    version_id=versions[0]['id']
+                    VersionId=versions[0]['id']
                 )
                 content = response['Body'].read().decode()
                 assert content == versions[0]['content'], \
@@ -125,13 +125,13 @@ def test_200(s3_client, config):
                         s3_client.delete_object(
                             bucket_name,
                             version['Key'],
-                            version_id=version.get('VersionId')
+                            VersionId=version.get('VersionId')
                         )
                     for marker in versions_response.get('DeleteMarkers', []):
                         s3_client.delete_object(
                             bucket_name,
                             marker['Key'],
-                            version_id=marker.get('VersionId')
+                            VersionId=marker.get('VersionId')
                         )
                 except:
                     # Fallback to simple delete
