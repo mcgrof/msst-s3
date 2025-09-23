@@ -64,7 +64,18 @@ class TestDiscovery:
         "lifecycle": (500, 599),
         "performance": (600, 699),
         "stress": (700, 799),
-        "compatibility": (800, 899),
+        "edge": (800, 899),
+        "integration": (900, 1000),
+        "advanced_basic": (1001, 1100),
+        "advanced_multipart": (1101, 1200),
+        "replication": (1201, 1300),
+        "notifications": (1301, 1400),
+        "lambda": (1401, 1500),
+        "analytics": (1501, 1600),
+        "batch": (1601, 1700),
+        "tiering": (1701, 1800),
+        "access_points": (1801, 1900),
+        "object_lambda": (1901, 2000),
     }
 
     def __init__(self, test_dir: Path):
