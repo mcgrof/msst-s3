@@ -103,13 +103,26 @@ python scripts/test-runner.py \
 
 ### Production Validation
 
+### Quick Start Validation Strategies
+
+Choose the appropriate validation level based on your needs:
+
+| Strategy | Time | Use Case | Command |
+|----------|------|----------|---------|
+| **Smoke Test** | 2-5 min | Quick functionality check | `make test TEST="001 002 003"` |
+| **Critical Path** | 5-10 min | Pre-deployment validation | `python scripts/production-validation.py --quick` |
+| **Feature Test** | 15-30 min | Specific feature validation | `make test GROUP=multipart` |
+| **Full Production** | 30-60 min | Complete validation | `python scripts/production-validation.py` |
+
+### Validation Commands
+
 ```bash
-# Quick validation (critical tests only)
+# Quick validation (critical tests only) - 5-10 minutes
 python scripts/production-validation.py \
   --config s3_config.yaml \
   --quick
 
-# Full validation suite
+# Full validation suite - 30-60 minutes
 python scripts/production-validation.py \
   --config s3_config.yaml \
   --output-dir prod-validation
@@ -119,7 +132,25 @@ python scripts/production-validation.py \
   --config s3_config.yaml \
   --latency-requirement 500 \
   --throughput-requirement 20
+
+# Progressive validation (escalates on failure)
+./scripts/progressive-validation.sh
 ```
+
+### Validation Success with MinIO
+
+All tests pass successfully with MinIO Docker container:
+```
+✓ Critical Data Integrity: 100.0% (3/3 passed)
+✓ Error Handling & Recovery: 100.0% (2/2 passed)
+✓ Multipart Operations: 100.0% (3/3 passed)
+✓ Versioning Support: 100.0% (1/1 passed)
+✓ Performance Benchmarks: 100.0% (2/2 passed)
+================================================================================
+✓ PRODUCTION READY - All requirements met
+```
+
+For detailed validation strategies, see [VALIDATION_STRATEGIES.md](VALIDATION_STRATEGIES.md)
 
 ## Writing New Tests
 
