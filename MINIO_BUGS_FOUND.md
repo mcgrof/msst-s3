@@ -105,9 +105,53 @@ All test cases are available in the test suite:
 - `tests/lifecycle/test_lifecycle_transitions.py`
 - Additional 25 tests covering other S3 functionality
 
+## Additional Bugs Found (Systematic Testing - Sept 26, 2025)
+
+After creating 6 additional systematic tests based on MinIO's S3 API compatibility matrix, more critical bugs were discovered:
+
+### 8. **Object Lock Retention Not Enforced**
+**Test**: `test_object_locking.py`
+**Issue**: Objects with GOVERNANCE/COMPLIANCE retention can still be deleted
+**Details**: Despite setting retention policies, objects are deletable without proper bypass
+**Impact**: CRITICAL - Violates WORM compliance requirements
+**AWS S3 Behavior**: Strictly enforces retention policies
+**MinIO Bug**: Object Lock protection is not actually enforced
+
+### 9. **Legal Hold Operations Partially Broken**
+**Test**: `test_object_locking.py`
+**Issue**: Some legal hold operations fail with MethodNotAllowed
+**Details**: After applying legal hold, subsequent operations fail unexpectedly
+**Impact**: High - Legal hold feature partially unusable
+**AWS S3 Behavior**: Full legal hold support
+**MinIO Bug**: Incomplete legal hold implementation
+
+### 10. **Replication Requires Non-Standard ARN Format**
+**Test**: `test_bucket_replication.py`
+**Issue**: MinIO rejects standard AWS IAM role ARNs for replication
+**Error**: `XMinioAdminRemoteArnInvalid: The bucket remote ARN does not have correct format`
+**Impact**: High - Breaks AWS compatibility for replication setup
+**AWS S3 Behavior**: Accepts standard IAM role ARNs
+**MinIO Bug**: Non-standard ARN format requirements
+
+### 11. **Limited Storage Class Support**
+**Test**: `test_bucket_replication.py`
+**Issue**: MinIO rejects valid AWS storage classes (STANDARD_IA, GLACIER)
+**Error**: `unknown storage class STANDARD_IA`
+**Impact**: Medium - Limits lifecycle and replication options
+**AWS S3 Behavior**: Supports all standard storage classes
+**MinIO Bug**: Missing storage class implementations
+
+### 12. **Bucket Notifications Largely Unsupported**
+**Test**: `test_bucket_notifications.py`
+**Issue**: Most notification configurations fail or are not implemented
+**Details**: SNS/SQS/Lambda notifications not properly supported
+**Impact**: High - Event-driven architectures cannot be implemented
+**AWS S3 Behavior**: Full notification support
+**MinIO Bug**: Notifications feature mostly missing
+
 ## Status
 
-**Total Tests**: 30 high-quality S3 compatibility tests
-**Bugs Found**: 7 significant compatibility issues
-**Severity**: 3 High, 3 Medium, 1 Low
-**Recommendation**: MinIO needs significant compatibility improvements for production S3 replacement use
+**Total Tests**: 36 comprehensive S3 compatibility tests (30 original + 6 systematic)
+**Bugs Found**: 12 significant compatibility issues
+**Severity**: 5 Critical, 5 High, 2 Medium
+**Recommendation**: MinIO has critical gaps in enterprise features (Object Lock, Replication, Notifications) making it unsuitable for production S3 replacement in compliance-sensitive environments
